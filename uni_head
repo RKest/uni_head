@@ -1,0 +1,55 @@
+#!/usr/bin/python3
+
+import os
+from os.path import curdir
+from pathlib import Path
+from argparse import ArgumentParser
+from datetime import date
+
+
+def expand_to_centered(text, length):
+    if len(text) > length:
+        raise Exception("Too long of an input")
+    total_padding_len = length - len(text)
+    side_padding_len = total_padding_len // 2
+    side_padding = "".join(" " for _ in range(side_padding_len))
+    end = "" if len(text) & 1 else " "
+    return side_padding + text + side_padding + end
+
+
+def today():
+    now = date.today()
+    return now.strftime("%d.%m.%Y")
+
+
+if __name__ == '__main__':
+    p = ArgumentParser()
+
+    p.add_argument("-p", "--pattern", default="*.txt", required=False)
+    p.add_argument("-s", "--subject", required=True)
+    args = p.parse_args()
+
+    for path in Path(curdir).rglob(args.pattern):
+        with open(path, 'r+') as f:
+            print(f"Filename: {path}")
+            print("".join(f.readlines()[0:8]))
+            topic = input("Provide topic: ")
+            available_space = 81
+            f.seek(0, 0)
+            content = f.read()
+            f.seek(0, 0)
+            print("┌─────────────────────────────────────────────────────────────────────────────────┐\n"
+                  "│  POLITECHNIKA BYDGOSKA WYDZIAŁ TELEKOMUNIKACJI, INFORMATYKI I ELEKTROTECHNIKI   │\n"
+                  "├────────────┬─────────────────────────────────┬───────────┬──────┬─────────┬─────┤\n"
+                  "│  Kierunek  │      Informatyka stosowana      │  Semestr  │  II  │  Grupa  │  2  │\n"
+                  "├────────────┴──────┬──────────────────────────┴───────────┴──────┴─────────┴─────┤\n"
+                  "│  Imię i nazwisko  │                         Max Ind                             │\n"
+                  "├───────────────────┴─────────────────────────────────────────────────────────────┤\n"
+                  f"│{expand_to_centered(args.subject, available_space)}│\n"
+                  "├─────────────────────────────────────────────────────────────────────────────────┤\n"
+                  f"│{expand_to_centered(topic, available_space)}│\n"
+                  "├───────────────────────┬─────────────────┬──────────────────────┬────────────────┤\n"
+                  f"│    Data wykonania     │   {today()}    │     Data oddania     │   {today()}   │\n"
+                  "└───────────────────────┴─────────────────┴──────────────────────┴────────────────┘\n"
+                  + content
+                  , file=f)
